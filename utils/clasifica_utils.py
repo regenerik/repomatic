@@ -242,6 +242,8 @@ def process_missing_sentiment(comments_df):
             logger.error(f"Error durante el merge: {e}")
             return
     
+
+    
     # Guardar el DataFrame actualizado en la base de datos cuando no haya más vacíos
     logger.info("Guardando DataFrame actualizado en la tabla FilteredExperienceComments...")
     output = BytesIO()

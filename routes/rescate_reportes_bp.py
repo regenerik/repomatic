@@ -148,7 +148,6 @@ def descargar_reporte():
 
     reporte_url = data['reporte_url']
     file_type = data.get('file_type', 'csv')
-    zip_option = data.get('zip', 'no')
     logger.info(f"2 - Url requerida para descarga: {reporte_url}")
     
     reporte_data, created_at, title = obtener_reporte(reporte_url)
