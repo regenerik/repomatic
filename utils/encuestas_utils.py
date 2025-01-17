@@ -121,7 +121,7 @@ def obtener_y_guardar_survey():
     logger.info("8 - Ya convertimos el dataframe a binario, ahora vamos a guardar el archivo...")
 
     # Elimina registros previos en la tabla que corresponde
-    report_to_delete = Survey.query.all()
+    report_to_delete = Survey.query.first()
     if report_to_delete:
         db.session.delete(report_to_delete)
         db.session.commit()
