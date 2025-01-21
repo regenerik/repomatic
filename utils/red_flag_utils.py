@@ -34,7 +34,7 @@ def red_flag_finder(file_content):
     df = df[df['SENTIMIENTO'] != 'inválido']
 
     # Filtrar registros eliminando aquellos donde el campo COMENTARIO tenga menos de 60 caracteres
-    df = df[df['COMENTARIO'].str.len() >= 60]
+    df = df[df['COMENTARIO'].str.len() >= 100]
 
     # Continuar el flujo utilizando el DataFrame filtrado
     logger.info("4.2 - Continuando con registros filtrados...")
