@@ -58,16 +58,16 @@ def get_evaluations_of_all(file_content):
         prompt = """
             Para cada comentario a continuación, responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. Evalúa el comentario para determinar a cuál de los siguientes 10 tópicos pertenece. No inventes tópicos nuevos, si crees que el comentario no encaja en ningún tópico, clasifícalo como EXPERIENCIA_GENERICA. Aquí están los tópicos:  
 
-            1. Si el comentario menciona temas como TRATO_ACTITUD, ATENCION_GENERAL, SERVICIOS_DE_CORTESIA, CONOCIMIENTO_DEL_VENDEDOR, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
-            2. Si el comentario menciona temas como CALIDAD_NAFTA_INFINIA, CALIDAD_CAFE, CALIDAD_HAMBURGUESAS, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
-            3. Si el comentario menciona temas como APLICACIONES_DIGITALES, USO_DE_TARJETAS_DIGITALES, probablemente se trate del tópico DIGITAL.  
-            4. Si el comentario menciona temas como EXPERIENCIA_POSITIVA, EXPERIENCIA_GENERAL, COSAS_IRRELEVANTES, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
-            5. Si el comentario menciona temas como IMAGEN_DE_INSTALACIONES, SERVICIOS_GENERALES, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
-            6. Si el comentario menciona temas como RECLAMOS_SERIOS, PROBLEMAS_CRITICOS, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
-            7. Si el comentario menciona temas como LIMPIEZA_BAÑOS, HIGIENE_SANITARIOS, probablemente se trate del tópico SANITARIOS.  
-            8. Si el comentario menciona temas como FALTA_DE_STOCK, DISPONIBILIDAD_PRODUCTOS, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
-            9. Si el comentario menciona temas como DEMORAS_EN_EL_SERVICIO, RAPIDEZ_ATENCION, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
-            10. Si el comentario menciona temas como PRECIOS_ALTOS, USO_DE_TARJETAS_BANCARIAS, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
+            1. Si el comentario menciona temas como trato, actitud,atención general, atención de cortesia, conocimiento del vendedor, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
+            2. Si el comentario menciona temas como la calidad de la nafta infinia, la calidad del café, la calidad de las hamburguesas, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
+            3. Si el comentario menciona temas como descuentos aplicados, falta de descuentos, descuentos en general, app o aplicaciones generales, uso de tarjetas digitales, aplicaciones web o de celular, lo más probable es que se trate del tópico DIGITAL.  
+            4. Si el comentario menciona temas como experiencia positiva, experiencia general, cosas irrelevantes, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
+            5. Si el comentario menciona temas como imagen de instalaciones,menciona servicios integrales generales como carga de aire o agua caliente, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
+            6. Si el comentario menciona temas como problemas muy críticos como peligro real, contaminación con combustibles o agresiones físicas, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
+            7. Si el comentario menciona temas como limpieza de baños, higiene de sanitarios, probablemente se trate del tópico SANITARIOS.  
+            8. Si el comentario menciona temas como falta de stock, disponibilidad de productos, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
+            9. Si el comentario menciona temas como demoras en el servicio, rapidez de atención, servicio rápido, atención lenta o desorganizada, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
+            10. Si el comentario menciona temas como persepción de precios altos, se aceptan o no tarjetas bancarias, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
 
             Responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. No utilices otros símbolos, comillas o texto adicional. Respuesta ejemplo:  
             123: EXPERIENCIA_GENERICA  
@@ -168,16 +168,16 @@ def process_missing_topics(comments_df):
             prompt = """
             Para cada comentario a continuación, responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. Evalúa el comentario para determinar a cuál de los siguientes 10 tópicos pertenece. No inventes tópicos nuevos, si crees que el comentario no encaja en ningún tópico, clasifícalo como EXPERIENCIA_GENERICA. Aquí están los tópicos:  
 
-            1. Si el comentario menciona temas como TRATO_ACTITUD, ATENCION_GENERAL, SERVICIOS_DE_CORTESIA, CONOCIMIENTO_DEL_VENDEDOR, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
-            2. Si el comentario menciona temas como CALIDAD_NAFTA_INFINIA, CALIDAD_CAFE, CALIDAD_HAMBURGUESAS, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
-            3. Si el comentario menciona temas como APLICACIONES_DIGITALES, USO_DE_TARJETAS_DIGITALES, probablemente se trate del tópico DIGITAL.  
-            4. Si el comentario menciona temas como EXPERIENCIA_POSITIVA, EXPERIENCIA_GENERAL, COSAS_IRRELEVANTES, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
-            5. Si el comentario menciona temas como IMAGEN_DE_INSTALACIONES, SERVICIOS_GENERALES, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
-            6. Si el comentario menciona temas como RECLAMOS_SERIOS, PROBLEMAS_CRITICOS, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
-            7. Si el comentario menciona temas como LIMPIEZA_BAÑOS, HIGIENE_SANITARIOS, probablemente se trate del tópico SANITARIOS.  
-            8. Si el comentario menciona temas como FALTA_DE_STOCK, DISPONIBILIDAD_PRODUCTOS, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
-            9. Si el comentario menciona temas como DEMORAS_EN_EL_SERVICIO, RAPIDEZ_ATENCION, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
-            10. Si el comentario menciona temas como PRECIOS_ALTOS, USO_DE_TARJETAS_BANCARIAS, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
+            1. Si el comentario menciona temas como trato, actitud,atención general, atención de cortesia, conocimiento del vendedor, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
+            2. Si el comentario menciona temas como la calidad de la nafta infinia, la calidad del café, la calidad de las hamburguesas, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
+            3. Si el comentario menciona temas como descuentos aplicados, falta de descuentos, descuentos en general, app o aplicaciones generales, uso de tarjetas digitales, aplicaciones web o de celular, lo más probable es que se trate del tópico DIGITAL.  
+            4. Si el comentario menciona temas como experiencia positiva, experiencia general, cosas irrelevantes, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
+            5. Si el comentario menciona temas como imagen de instalaciones,menciona servicios integrales generales como carga de aire o agua caliente, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
+            6. Si el comentario menciona temas como problemas muy críticos como peligro real, contaminación con combustibles o agresiones físicas, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
+            7. Si el comentario menciona temas como limpieza de baños, higiene de sanitarios, probablemente se trate del tópico SANITARIOS.  
+            8. Si el comentario menciona temas como falta de stock, disponibilidad de productos, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
+            9. Si el comentario menciona temas como demoras en el servicio, rapidez de atención, servicio rápido, atención lenta o desorganizada, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
+            10. Si el comentario menciona temas como persepción de precios altos, se aceptan o no tarjetas bancarias, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
 
             Responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. No utilices otros símbolos, comillas o texto adicional. Respuesta ejemplo:  
             123: EXPERIENCIA_GENERICA  
