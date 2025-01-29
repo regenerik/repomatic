@@ -58,16 +58,16 @@ def get_evaluations_of_all(file_content):
         prompt = """
             Para cada comentario a continuación, responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. Evalúa el comentario para determinar a cuál de los siguientes 10 tópicos pertenece. No inventes tópicos nuevos, si crees que el comentario no encaja en ningún tópico, clasifícalo como EXPERIENCIA_GENERICA. Aquí están los tópicos:  
 
-            1. Si el comentario menciona temas como trato, actitud,atención general, atención de cortesia, conocimiento del vendedor, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
-            2. Si el comentario menciona temas como la calidad de la nafta infinia, la calidad del café, la calidad de las hamburguesas, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
-            3. Si el comentario menciona temas como descuentos aplicados, falta de descuentos, descuentos en general, app o aplicaciones generales, uso de tarjetas digitales, aplicaciones web o de celular, lo más probable es que se trate del tópico DIGITAL.  
-            4. Si el comentario menciona temas como experiencia positiva, experiencia general, cosas irrelevantes, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
-            5. Si el comentario menciona temas como imagen de instalaciones,menciona servicios integrales generales como carga de aire o agua caliente, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
-            6. Si el comentario menciona temas como problemas muy críticos como peligro real, contaminación con combustibles o agresiones físicas, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
-            7. Si el comentario menciona temas como limpieza de baños, higiene de sanitarios, probablemente se trate del tópico SANITARIOS.  
-            8. Si el comentario menciona temas como falta de stock, disponibilidad de productos, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
-            9. Si el comentario menciona temas como demoras en el servicio, rapidez de atención, servicio rápido, atención lenta o desorganizada, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
-            10. Si el comentario menciona temas como persepción de precios altos, se aceptan o no tarjetas bancarias, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
+            1. ATENCION_AL_CLIENTE: Cuando hacen referencia a la atención recibida por los vendedores de la estación de servicio. Mencionando temas como: trato, actitud, atención general, atención de cortesía, conocimiento del vendedor.
+            2. TIEMPOS_DE_ESPERA: Cuando se quejan por la lentitud del servicio o atención, o aprecian la agilidad en el mismo. Mencionando temas como: largas filas, demoras en el servicio, rapidez en la atención.
+            3. DIGITAL: Todo lo vinculado a la app de la empresa YPF, incluyendo comentarios sobre descuentos recibidos, tanto positivos como negativos. Mencionando temas como: funcionalidad de la app, promociones, uso de tarjetas digitales.
+            4. VARIABLES_ECONOMICAS_Y_BANCOS: Cuando hablan del precio, tanto criticas de lo caros que son, como otros comentarios apreciando precios barato o bajos:
+            5. STOCK_DE_PRODUCTOS: Cuando hacen referencia a la disponibilidad de productos de combustible o de la tienda de la estación.
+            6. CALIDAD_DE_PRODUCTOS: Cuando hacen referencia positiva o negativamente a los productos que compran, como naftas, café, medialunas, hamburguesas, etc.
+            7. PROBLEMATICAS_CRITICAS: Solamente cuando hacen referencia a cuestiones muy críticas por las cuales la empresa podría enfrentar problemas judiciales. Mencionando temas como: cuestiones bromatológicas, contaminación de comida o en mal estado, contaminación del tanque de combustible, derrame de combustible, no entrega de factura o ticket, etc.
+            8. SANITARIOS: Cuando hablan del estado de los baños de la estación, su higiene, limpieza o faltante de insumos.
+            9. IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES: Cuando hablan del ambiente en general de la estación, de su limpieza y cuidado, de servicios como el wifi, poste inflado, termo para cargar agua caliente o la accesibilidad de la misma.
+            10. EXPERIENCIA_GENERICA: Son aquellos comentarios que no encajan en ninguno de los tópicos anteriores, generalmente cosas irrelevantes, o específicamente la palabra 'ok', o contienen las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas. También incluyen evaluaciones con puntajes sin contexto, como '10', 'de 10', '10 puntos' o similares. Es decir, comentarios sobre los cuales no se puede accionar para mejorar.
 
             Responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. No utilices otros símbolos, comillas o texto adicional. Respuesta ejemplo:  
             123: EXPERIENCIA_GENERICA  
@@ -168,16 +168,16 @@ def process_missing_topics(comments_df):
             prompt = """
             Para cada comentario a continuación, responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. Evalúa el comentario para determinar a cuál de los siguientes 10 tópicos pertenece. No inventes tópicos nuevos, si crees que el comentario no encaja en ningún tópico, clasifícalo como EXPERIENCIA_GENERICA. Aquí están los tópicos:  
 
-            1. Si el comentario menciona temas como trato, actitud,atención general, atención de cortesia, conocimiento del vendedor, y solo cuando sea evidente que se esté hablando de la atención al cliente, probablemente se trate del tópico ATENCION_AL_CLIENTE.  
-            2. Si el comentario menciona temas como la calidad de la nafta infinia, la calidad del café, la calidad de las hamburguesas, probablemente se trate del tópico CALIDAD_DE_PRODUCTOS.  
-            3. Si el comentario menciona temas como descuentos aplicados, falta de descuentos, descuentos en general, app o aplicaciones generales, uso de tarjetas digitales, aplicaciones web o de celular, lo más probable es que se trate del tópico DIGITAL.  
-            4. Si el comentario menciona temas como experiencia positiva, experiencia general, cosas irrelevantes, o es específicamente la palabra 'ok', o contiene las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas, o además las evaluaciones con puntajes sin contexto como por ejemplo '10', 'de 10', '10 puntos' o similares, probablemente todos esos ejemplos se traten del tópico EXPERIENCIA_GENERICA.  
-            5. Si el comentario menciona temas como imagen de instalaciones,menciona servicios integrales generales como carga de aire o agua caliente, probablemente se trate del tópico IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES.  
-            6. Si el comentario menciona temas como problemas muy críticos como peligro real, contaminación con combustibles o agresiones físicas, probablemente se trate del tópico PROBLEMATICAS_CRITICAS.  
-            7. Si el comentario menciona temas como limpieza de baños, higiene de sanitarios, probablemente se trate del tópico SANITARIOS.  
-            8. Si el comentario menciona temas como falta de stock, disponibilidad de productos, probablemente se trate del tópico STOCK_DE_PRODUCTOS.  
-            9. Si el comentario menciona temas como demoras en el servicio, rapidez de atención, servicio rápido, atención lenta o desorganizada, probablemente se trate del tópico TIEMPO_DE_ESPERA.  
-            10. Si el comentario menciona temas como persepción de precios altos, se aceptan o no tarjetas bancarias, probablemente se trate del tópico VARIABLES_ECONOMICAS_Y_BANCOS.  
+            1. ATENCION_AL_CLIENTE: Cuando hacen referencia a la atención recibida por los vendedores de la estación de servicio. Mencionando temas como: trato, actitud, atención general, atención de cortesía, conocimiento del vendedor.
+            2. TIEMPOS_DE_ESPERA: Cuando se quejan por la lentitud del servicio o atención, o aprecian la agilidad en el mismo. Mencionando temas como: largas filas, demoras en el servicio, rapidez en la atención.
+            3. DIGITAL: Todo lo vinculado a la app de la empresa YPF, incluyendo comentarios sobre descuentos recibidos, tanto positivos como negativos. Mencionando temas como: funcionalidad de la app, promociones, uso de tarjetas digitales.
+            4. VARIABLES_ECONOMICAS_Y_BANCOS: Cuando hablan del precio, tanto criticas de lo caros que son, como otros comentarios apreciando precios barato o bajos:
+            5. STOCK_DE_PRODUCTOS: Cuando hacen referencia a la disponibilidad de productos de combustible o de la tienda de la estación.
+            6. CALIDAD_DE_PRODUCTOS: Cuando hacen referencia positiva o negativamente a los productos que compran, como naftas, café, medialunas, hamburguesas, etc.
+            7. PROBLEMATICAS_CRITICAS: Solamente cuando hacen referencia a cuestiones muy críticas por las cuales la empresa podría enfrentar problemas judiciales. Mencionando temas como: cuestiones bromatológicas, contaminación de comida o en mal estado, contaminación del tanque de combustible, derrame de combustible, no entrega de factura o ticket, etc.
+            8. SANITARIOS: Cuando hablan del estado de los baños de la estación, su higiene, limpieza o faltante de insumos.
+            9. IMAGEN_INSTALACIONES_Y_SERVICIOS_GENERALES: Cuando hablan del ambiente en general de la estación, de su limpieza y cuidado, de servicios como el wifi, poste inflado, termo para cargar agua caliente o la accesibilidad de la misma.
+            10. EXPERIENCIA_GENERICA: Son aquellos comentarios que no encajan en ninguno de los tópicos anteriores, generalmente cosas irrelevantes, o específicamente la palabra 'ok', o contienen las palabras 'bien', 'muy bien', 'mb' sin contexto, y variantes parecidas. También incluyen evaluaciones con puntajes sin contexto, como '10', 'de 10', '10 puntos' o similares. Es decir, comentarios sobre los cuales no se puede accionar para mejorar.
 
             Responde SOLO con el formato 'ID-{id}: nombre_del_tópico'. No utilices otros símbolos, comillas o texto adicional. Respuesta ejemplo:  
             123: EXPERIENCIA_GENERICA  
