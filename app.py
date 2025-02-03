@@ -12,6 +12,7 @@ from routes.resumen_comentarios_apies_bp import resumen_comentarios_apies_bp
 from routes.diarios_clasifica_sentimientos_bp import diarios_clasifica_sentimientos_bp
 from routes.clasifica_comentarios_individuales_bp import clasifica_comentarios_individuales_bp
 from routes.comentarios_red_flag_bp import comentarios_red_flag_bp
+from routes.find_comments_bp import find_comments_bp
 from database import db                             # Acá importamos la base de datos inicializada
 from flask_cors import CORS                         # Permisos de consumo
 from extensions import init_extensions              # Necesario para que funcione el executor en varios archivos en simultaneo
@@ -54,6 +55,8 @@ app.register_blueprint(diarios_clasifica_sentimientos_bp, url_prefix='/')
 app.register_blueprint(clasifica_topicos_mensual_bp, url_prefix='/')
 
 app.register_blueprint(comentarios_red_flag_bp, url_prefix='/')
+
+app.register_blueprint(find_comments_bp, url_prefix='/')
 
 # DATABASE---------------
 db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'mydatabase.db')
