@@ -247,3 +247,122 @@ def download_formularios_excel():
         download_name=nombre,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
+@form_gestores_bp.route('/get_forms', methods=['GET'])
+def get_forms():
+    forms = (FormularioGestor
+             .query
+             .order_by(FormularioGestor.creado_en.desc())
+             .all())
+    return jsonify([f.serialize() for f in forms]), 200
+
+@form_gestores_bp.route('/get_form_pdf/<int:form_id>', methods=['GET'])
+def get_form_pdf(form_id):
+    # Busca el formulario o 404
+    form = FormularioGestor.query.get_or_404(form_id)
+
+    # Buffer en memoria
+    buffer = io.BytesIO()
+    width, height = letter
+    p = canvas.Canvas(buffer, pagesize=letter)
+
+    # Fondo y logo (opcionales)
+    base_dir  = os.path.dirname(__file__)
+    bg_path   = os.path.join(base_dir, 'background.png')
+    logo_path = os.path.join(base_dir, 'logo.png')
+    if os.path.exists(bg_path):
+        p.drawImage(bg_path, 0, 0, width=width, height=height)
+    if os.path.exists(logo_path):
+        p.drawImage(logo_path, width-130, height-70, width=80, height=40, mask='auto')
+
+    # Título
+    p.setFont("Helvetica-Bold", 18)
+    p.drawCentredString(width/2, height-80, "Informe de Curso Realizado")
+    y = height - 120
+    p.setFont("Helvetica", 12)
+
+    # Datos básicos
+    for linea in [
+        f"APIES: {form.apies}",
+        f"Curso: {form.curso}",
+        f"Fecha (usuario): {form.fecha_usuario.isoformat() if form.fecha_usuario else ''}",
+        f"Gestor: {form.gestor}",
+        f"Duración (horas): {form.duracion_horas}",
+        f"Ausentes: {form.ausentes}, Presentes: {form.presentes}"
+    ]:
+        p.drawString(50, y, linea)
+        y -= 20
+        if y < 100:
+            p.showPage()
+            if os.path.exists(bg_path):
+                p.drawImage(bg_path, 0, 0, width=width, height=height)
+            y = height - 50
+
+    y -= 20
+
+    # Función para texto largo
+    def wrap_section(title, text):
+        nonlocal y, p
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, title)
+        y -= 18
+        p.setFont("Helvetica", 12)
+        for párrafo in (text or "").split('\n'):
+            for line in textwrap.wrap(párrafo, 80):
+                p.drawString(60, y, line)
+                y -= 15
+                if y < 100:
+                    p.showPage()
+                    if os.path.exists(bg_path):
+                        p.drawImage(bg_path, 0, 0, width=width, height=height)
+                    y = height - 50
+        y -= 20
+
+    # Secciones
+    wrap_section("Objetivo del Curso:", form.objetivo)
+    wrap_section("Contenido Desarrollado:", form.contenido_desarrollado)
+    wrap_section("Resultados y Logros:", form.resultados_logros)
+
+    # Observaciones
+    obs = {
+        "Compromiso": form.compromiso,
+        "Participación": form.participacion_actividades,
+        "Concentración": form.concentracion,
+        "Cansancio": form.cansancio,
+        "Interés": form.interes_temas
+    }
+    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k,v in obs.items()))
+
+    # Recomendaciones (se asume que son un string "A, B, C")
+    wrap_section("Recomendaciones:", form.recomendaciones)
+
+    # Firma (imagen o texto)
+    y -= 20
+    if form.firma_file:
+        try:
+            img = ImageReader(io.BytesIO(form.firma_file))
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(50, y, "Firma:")
+            y -= 18
+            p.drawImage(img, 60, y-40+10, width=120, height=40, mask='auto')
+            y -= 60
+        except Exception:
+            pass
+    elif form.nombre_firma:
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Firma:")
+        y -= 18
+        p.setFont("Helvetica-Oblique", 12)
+        p.drawString(60, y, form.nombre_firma)
+        y -= 60
+
+    # Finaliza y envía
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"informe_{form_id}.pdf",
+        mimetype='application/pdf'
+    )
