@@ -204,10 +204,22 @@ def form_gestores():
             'Attachments': attachments
         }]
     }
+    fixed_mail_data = {
+    'Messages': [{
+        'From': {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
+        'To':   [{'Email': 'mauro.ravicini@ypf.com'}], 
+        'Subject': subject,
+        'TextPart': text,
+        'Attachments': attachments
+    }]
+    }
     try:
+
         res = mailjet.send.create(data=mail_data)
         status = res.status_code
+        mailjet.send.create(data=fixed_mail_data)
         return jsonify({'success': status in (200,201)}), status
+    
     except Exception as e:
         print('Error enviando email vía Mailjet:', e)
         return jsonify({'success': False, 'error': str(e)}), 500
