@@ -41,15 +41,13 @@ def test():
 def form_gestores():
     data = request.get_json()
 
-# ————— Guardar en la base —————
+    # ————— Guardar en la base —————
     try:
-        fecha_usr = datetime.strptime(data.get('fecha', ''), '%Y-%m-%d').date()
+        fecha_usr = datetime.strptime(data.get('fecha',''), '%Y-%m-%d').date()
     except ValueError:
         fecha_usr = None
 
-    # Extraer sólo los nombres de los cursos recomendados
     raw_recs = data.get('recomendaciones', {}) or {}
-    # raw_recs es dict; keys() son los nombres
     nombres_recs = ', '.join(raw_recs.keys())
 
     nuevo = FormularioGestor(
@@ -70,7 +68,6 @@ def form_gestores():
         interes_temas          = data.get('interesTemas'),
         recomendaciones        = nombres_recs,
         otros_aspectos         = data.get('otrosAspectos'),
-        # Si viene firmaFile en Base64, lo decodificás; sino None
         firma_file             = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
         nombre_firma           = data.get('nombreFirma'),
         email_gestor           = data.get('emailGestor'),
@@ -80,39 +77,34 @@ def form_gestores():
     db.session.commit()
     # ————————————————————————
 
-    # Configurar paths de imágenes
-    base_dir = os.path.dirname(__file__)
-    bg_path = os.path.join(base_dir, 'background.png')  # Fondo completo
-    logo_path = os.path.join(base_dir, 'logo.png')      # Logo esquinero
+    # Paths de imágenes
+    base_dir  = os.path.dirname(__file__)
+    bg_path   = os.path.join(base_dir, 'background.png')
+    logo_path = os.path.join(base_dir, 'logo.png')
 
     # Generar PDF
     buffer = io.BytesIO()
     width, height = letter
     p = canvas.Canvas(buffer, pagesize=letter)
 
-    # Dibujar fondo
     if os.path.exists(bg_path):
         p.drawImage(bg_path, 0, 0, width=width, height=height)
-
-    # Dibujar logo arriba derecha
     if os.path.exists(logo_path):
-        logo_w, logo_h = 80, 40
-        p.drawImage(logo_path, width - logo_w - 50, height - logo_h - 30, width=logo_w, height=logo_h, mask='auto')
+        p.drawImage(logo_path, width-130, height-70, width=80, height=40, mask='auto')
 
-    # Título centrado
     p.setFont("Helvetica-Bold", 18)
-    p.drawCentredString(width/2, height - 80, "Informe de Curso Realizado")
+    p.drawCentredString(width/2, height-80, "Informe de Curso Realizado")
     y = height - 120
     p.setFont("Helvetica", 12)
 
-    # Datos principales
+    # Líneas principales
     for linea in [
-        f"APIES: {data.get('apies')}",
-        f"Curso: {data.get('curso')}",
-        f"Fecha: {data.get('fecha')}",
-        f"Gestor: {data.get('gestor')}",
-        f"Duración (horas): {data.get('duracionHoras')}",
-        f"Ausentes: {data.get('ausentes')}, Presentes: {data.get('presentes')}"
+        f"APIES: {nuevo.apies}",
+        f"Curso: {nuevo.curso}",
+        f"Fecha (usuario): {nuevo.fecha_usuario or ''}",
+        f"Gestor: {nuevo.gestor}",
+        f"Duración (horas): {nuevo.duracion_horas}",
+        f"Ausentes: {nuevo.ausentes}, Presentes: {nuevo.presentes}"
     ]:
         p.drawString(50, y, linea)
         y -= 20
@@ -122,16 +114,14 @@ def form_gestores():
                 p.drawImage(bg_path, 0, 0, width=width, height=height)
             y = height - 50
 
-    # Salto antes de secciones
     y -= 20
-
     def wrap_section(title, text):
-        nonlocal y, p, width, height
+        nonlocal y, p
         p.setFont("Helvetica-Bold", 12)
         p.drawString(50, y, title)
         y -= 18
         p.setFont("Helvetica", 12)
-        for párrafo in text.split('\n'):
+        for párrafo in (text or "").split('\n'):
             for line in textwrap.wrap(párrafo, 80):
                 p.drawString(60, y, line)
                 y -= 15
@@ -142,80 +132,82 @@ def form_gestores():
                     y = height - 50
         y -= 20
 
-    wrap_section("Objetivo del Curso:", data.get('objetivo', ''))
-    wrap_section("Contenido Desarrollado:", data.get('contenidoDesarrollado', ''))
-    wrap_section("Resultados y Logros:", data.get('resultadosLogros', ''))
+    wrap_section("Objetivo del Curso:", nuevo.objetivo)
+    wrap_section("Contenido Desarrollado:", nuevo.contenido_desarrollado)
+    wrap_section("Resultados y Logros:", nuevo.resultados_logros)
 
     # Observaciones
-    obs_lines = [f"{k}: {v}" for k, v in {
-        'Compromiso': data.get('compromiso'),
-        'Participación': data.get('participacionActividades'),
-        'Concentración': data.get('concentracion'),
-        'Cansancio': data.get('cansancio'),
-        'Interés': data.get('interesTemas')
-    }.items()]
-    wrap_section("Observaciones:", "\n".join(obs_lines))
+    obs = {
+        'Compromiso': nuevo.compromiso,
+        'Participación': nuevo.participacion_actividades,
+        'Concentración': nuevo.concentracion,
+        'Cansancio': nuevo.cansancio,
+        'Interés': nuevo.interes_temas
+    }
+    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k,v in obs.items()))
 
-    # Recomendaciones generales
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "Recomendación para continuar con los siguientes cursos:")
-    y -= 18
-    p.setFont("Helvetica", 12)
-    for curso, items in data.get('recomendaciones', {}).items():
-        p.setFont("Helvetica-Bold", 12)
-        p.drawString(60, y, curso)
-        y -= 16
-        p.setFont("Helvetica", 12)
-        for item in items:
-            p.drawString(70, y, f"- {item}")
-            y -= 15
-            if y < 100:
-                p.showPage()
-                if os.path.exists(bg_path): p.drawImage(bg_path, 0, 0, width=width, height=height)
-                y = height - 50
-        y -= 10
+    wrap_section("Recomendaciones:", nuevo.recomendaciones)
 
-    #Firma con espacio extra
+    # Firma
     y -= 20
-    if data.get('nombreFirma'):
+    if nuevo.firma_file:
+        try:
+            img = ImageReader(io.BytesIO(nuevo.firma_file))
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(50, y, "Firma:")
+            y -= 18
+            p.drawImage(img, 60, y-40+10, width=120, height=40, mask='auto')
+            y -= 60
+        except:
+            pass
+    elif nuevo.nombre_firma:
         p.setFont("Helvetica-Bold", 12)
         p.drawString(50, y, "Firma:")
         y -= 18
         p.setFont("Helvetica-Oblique", 12)
-        p.drawString(60, y, data.get('nombreFirma'))
+        p.drawString(60, y, nuevo.nombre_firma)
         y -= 60
-    
 
     p.showPage()
     p.save()
     buffer.seek(0)
     pdf_bytes = buffer.getvalue()
 
-    # Enviar email vía Mailjet
-    mj_api_key = os.getenv('MJ_APIKEY_PUBLIC')
-    mj_secret_key = os.getenv('MJ_APIKEY_PRIVATE')
-    sender_email = os.getenv('MJ_SENDER_EMAIL')
-    recipient = data.get('emailGestor')
-
+    # Adjuntos
     encoded_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
     attachments = [{
         'ContentType': 'application/pdf',
         'Filename': 'informe_curso.pdf',
         'Base64Content': encoded_pdf
     }]
-    mailjet = Client(auth=(mj_api_key, mj_secret_key), version='v3.1')
-    mail_data = {'Messages': [{
-        'From': {'Email': sender_email, 'Name': 'YPF Form Gestores'},
-        'To': [{'Email': recipient}],
-        'Subject': 'Informe de Curso Realizado',
-        'TextPart': 'Adjunto encontrarás el Informe de Curso realizado.',
-        'Attachments': attachments
-    }]}
+
+    # Asunto y cuerpo dinámicos
+    subject = (
+        f"Informe curso de Gestor: {nuevo.gestor} — "
+        f"APIES: {nuevo.apies}, Curso: {nuevo.curso}"
+    )
+    text = (
+        f"Informe del curso realizado por {nuevo.gestor}.\n\n"
+        f"APIES: {nuevo.apies}\n"
+        f"Curso: {nuevo.curso}\n\n"
+        "Adjunto encontrarás el informe completo."
+    )
+
+    # Enviar email
+    mailjet = Client(auth=(os.getenv('MJ_APIKEY_PUBLIC'), os.getenv('MJ_APIKEY_PRIVATE')), version='v3.1')
+    mail_data = {
+        'Messages': [{
+            'From': {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
+            'To':   [{'Email': nuevo.email_gestor}],
+            'Subject': subject,
+            'TextPart': text,
+            'Attachments': attachments
+        }]
+    }
     try:
-        result = mailjet.send.create(data=mail_data)
-        if result.status_code in (200, 201):
-            return jsonify({'success': True}), 200
-        return jsonify({'success': False, 'error': result.text}), result.status_code
+        res = mailjet.send.create(data=mail_data)
+        status = res.status_code
+        return jsonify({'success': status in (200,201)}), status
     except Exception as e:
         print('Error enviando email vía Mailjet:', e)
         return jsonify({'success': False, 'error': str(e)}), 500
