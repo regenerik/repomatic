@@ -1,10 +1,16 @@
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, send_file
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io, os, base64, textwrap
 from mailjet_rest import Client
 from dotenv import load_dotenv
+from models import FormularioGestor
+from datetime import datetime
+from database import db
+import pandas as pd
+from io import BytesIO
+
 
 load_dotenv()
 
@@ -33,6 +39,46 @@ def test():
 @form_gestores_bp.route('/form_gestores', methods=['POST'])
 def form_gestores():
     data = request.get_json()
+
+# ————— Guardar en la base —————
+    try:
+        fecha_usr = datetime.strptime(data.get('fecha', ''), '%Y-%m-%d').date()
+    except ValueError:
+        fecha_usr = None
+
+    # Extraer sólo los nombres de los cursos recomendados
+    raw_recs = data.get('recomendaciones', {}) or {}
+    # raw_recs es dict; keys() son los nombres
+    nombres_recs = ', '.join(raw_recs.keys())
+
+    nuevo = FormularioGestor(
+        apies                  = data.get('apies'),
+        curso                  = data.get('curso'),
+        fecha_usuario          = fecha_usr,
+        gestor                 = data.get('gestor'),
+        duracion_horas         = int(data.get('duracionHoras') or 0),
+        objetivo               = data.get('objetivo'),
+        contenido_desarrollado = data.get('contenidoDesarrollado'),
+        ausentes               = int(data.get('ausentes') or 0),
+        presentes              = int(data.get('presentes') or 0),
+        resultados_logros      = data.get('resultadosLogros'),
+        compromiso             = data.get('compromiso'),
+        participacion_actividades = data.get('participacionActividades'),
+        concentracion          = data.get('concentracion'),
+        cansancio              = data.get('cansancio'),
+        interes_temas          = data.get('interesTemas'),
+        recomendaciones        = nombres_recs,
+        otros_aspectos         = data.get('otrosAspectos'),
+        # Si viene firmaFile en Base64, lo decodificás; sino None
+        firma_file             = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
+        nombre_firma           = data.get('nombreFirma'),
+        email_gestor           = data.get('emailGestor'),
+        creado_en              = datetime.utcnow()
+    )
+    db.session.add(nuevo)
+    db.session.commit()
+    # ————————————————————————
+
     # Configurar paths de imágenes
     base_dir = os.path.dirname(__file__)
     bg_path = os.path.join(base_dir, 'background.png')  # Fondo completo
@@ -171,3 +217,31 @@ def form_gestores():
     except Exception as e:
         print('Error enviando email vía Mailjet:', e)
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@form_gestores_bp.route('/form_gestores/download_excel', methods=['GET'])
+def download_formularios_excel():
+    # 1) Traer todos los registros
+    registros = FormularioGestor.query.all()
+    # 2) Serializar
+    data = [r.serialize() for r in registros]
+    # 3) Meter en DataFrame
+    df = pd.DataFrame(data)
+
+    # 4) Volcar a un buffer Excel
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Formularios')
+
+    output.seek(0)
+
+    # 5) Nombre dinámico con fecha actual
+    hoy = datetime.now()
+    nombre = f"Formularios_Gestores_hasta_{hoy.day:02d}_{hoy.month:02d}_{hoy.year}.xlsx"
+
+    # 6) Devolver como attachment
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=nombre,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )

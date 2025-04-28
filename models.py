@@ -60,3 +60,54 @@ class FilteredExperienceComments(db.Model):
 class DailyCommentsWithEvaluation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     archivo_binario = db.Column(db.LargeBinary)
+
+class FormularioGestor(db.Model):
+    __tablename__ = 'formulario_gestor'
+
+    id = db.Column(db.Integer, primary_key=True)
+    apies = db.Column(db.String(50), nullable=False)
+    curso = db.Column(db.String(100), nullable=False)
+    fecha_usuario = db.Column(db.Date, nullable=False)
+    gestor = db.Column(db.String(100), nullable=False)
+    duracion_horas = db.Column(db.Integer, nullable=False)
+    objetivo = db.Column(db.Text, nullable=True)
+    contenido_desarrollado = db.Column(db.Text, nullable=True)
+    ausentes = db.Column(db.Integer, nullable=False)
+    presentes = db.Column(db.Integer, nullable=False)
+    resultados_logros = db.Column(db.Text, nullable=True)
+    compromiso = db.Column(db.String(20), nullable=True)
+    participacion_actividades = db.Column(db.String(20), nullable=True)
+    concentracion = db.Column(db.String(20), nullable=True)
+    cansancio = db.Column(db.String(20), nullable=True)
+    interes_temas = db.Column(db.String(20), nullable=True)
+    recomendaciones = db.Column(db.Text, nullable=True)
+    otros_aspectos = db.Column(db.Text, nullable=True)
+    firma_file = db.Column(db.LargeBinary, nullable=True)
+    nombre_firma = db.Column(db.String(100), nullable=True)
+    email_gestor = db.Column(db.String(120), nullable=False)
+    creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "apies": self.apies,
+            "curso": self.curso,
+            "fecha_usuario": self.fecha_usuario.isoformat(),
+            "gestor": self.gestor,
+            "duracion_horas": self.duracion_horas,
+            "objetivo": self.objetivo,
+            "contenido_desarrollado": self.contenido_desarrollado,
+            "ausentes": self.ausentes,
+            "presentes": self.presentes,
+            "resultados_logros": self.resultados_logros,
+            "compromiso": self.compromiso,
+            "participacion_actividades": self.participacion_actividades,
+            "concentracion": self.concentracion,
+            "cansancio": self.cansancio,
+            "interes_temas": self.interes_temas,
+            "recomendaciones": self.recomendaciones,
+            "otros_aspectos": self.otros_aspectos,
+            "nombre_firma": self.nombre_firma,
+            "email_gestor": self.email_gestor,
+            "creado_en": self.creado_en.isoformat()
+        }
