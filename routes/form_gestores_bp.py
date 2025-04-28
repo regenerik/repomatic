@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify, current_app, send_file
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
 import io, os, base64, textwrap
 from mailjet_rest import Client
 from dotenv import load_dotenv
@@ -175,8 +176,40 @@ def form_gestores():
         y -= 10
 
     # Firma con espacio extra
+    # y -= 20
+    # if data.get('nombreFirma'):
+    #     p.setFont("Helvetica-Bold", 12)
+    #     p.drawString(50, y, "Firma:")
+    #     y -= 18
+    #     p.setFont("Helvetica-Oblique", 12)
+    #     p.drawString(60, y, data.get('nombreFirma'))
+    #     y -= 60
     y -= 20
-    if data.get('nombreFirma'):
+    if data.get('firmaFile'):
+        try:
+            # Decodear la firma y convertir a ImageReader
+            firma_bytes = base64.b64decode(data.get('firmaFile'))
+            firma_img = ImageReader(io.BytesIO(firma_bytes))
+
+            # Dibujar la etiqueta "Firma:"  
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(50, y, "Firma:")
+            y -= 18
+
+            # Dibujar la firma como imagen
+            firma_w, firma_h = 120, 40  # ajustá al tamaño que te guste
+            p.drawImage(firma_img, 60, y - firma_h + 10, width=firma_w, height=firma_h, mask='auto')
+            y -= firma_h + 10
+
+        except Exception as e:
+            # Si algo falla con la imagen, caemos al nombre
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(50, y, "Firma:")
+            y -= 18
+            p.setFont("Helvetica-Oblique", 12)
+            p.drawString(60, y, data.get('nombreFirma', ''))
+            y -= 60
+    elif data.get('nombreFirma'):
         p.setFont("Helvetica-Bold", 12)
         p.drawString(50, y, "Firma:")
         y -= 18
