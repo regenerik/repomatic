@@ -1,6 +1,7 @@
 
 from flask import Blueprint, request, jsonify, current_app, send_file
 from reportlab.pdfgen import canvas
+from logging_config import logger
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 import io, os, base64, textwrap
@@ -207,18 +208,24 @@ def form_gestores():
     fixed_mail_data = {
     'Messages': [{
         'From': {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
-        'To':   [{'Email': 'regenerik@gmail.com'}], 
+        'To':   [{'Email': 'regenerik.rio@gmail.com'}], 
         'Subject': subject,
         'TextPart': text,
         'Attachments': attachments
     }]
     }
     try:
+        # 1er envío: al gestor
+        res1 = mailjet.send.create(data=mail_data)
+        logger.info('Mailjet al gestor %s → %s %s',
+                    nuevo.email_gestor, res1.status_code, res1.json())
 
-        res = mailjet.send.create(data=mail_data)
-        status = res.status_code
-        mailjet.send.create(data=fixed_mail_data)
-        return jsonify({'success': status in (200,201)}), status
+        # 2do envío: fixed
+        res2 = mailjet.send.create(data=fixed_mail_data)
+        logger.info('Mailjet fixed → %s %s',
+                    res2.status_code, res2.json())
+
+        return jsonify({'success': res1.status_code in (200,201)}), res1.status_code
     
     except Exception as e:
         print('Error enviando email vía Mailjet:', e)
