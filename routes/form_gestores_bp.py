@@ -227,7 +227,7 @@ def form_gestores():
     fixed_mail_data = {
        'Messages': [{
             'From':    {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
-            'To':      [{'Email': 'nahuel.paz@ypf.com'}], # CAMBIAR A nahuel.paz@ypf.com despues de las pruebas
+            'To':      [{'Email': 'regenerik.rio@gmail.com'}], # CAMBIAR A nahuel.paz@ypf.com despues de las pruebas
             'Subject': subject,
             'TextPart': text,
             'Attachments': attachments
