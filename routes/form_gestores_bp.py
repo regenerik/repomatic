@@ -284,12 +284,41 @@ def get_form_pdf(form_id):
     # Busca el formulario o 404
     form = FormularioGestor.query.get_or_404(form_id)
 
+    # Reconstruir recomendaciones con contenidos, igual que la ruta POST
+    recomendaciones_mapping = {
+        'WOW Tienda': [
+            'Ciclo de servicios Tienda',
+            'Programa cultura Experiencia del cliente v2.0',
+            'Elaboración de café'
+        ],
+        'WOW Playa': [
+            'Ciclo de servicio: combustibles líquidos (líquido y GNC)',
+            'Programa cultura Experiencia del cliente v2.0',
+            'Nuestros productos combustibles / lubricantes'
+        ],
+        'PEC 1.0': [
+            'Programa cultura Experiencia del cliente v2.0',
+            'e-Class La voz que escuchamos'
+        ],
+        'PEC 2.0': [
+            'Programa cultura Experiencia del cliente v2.0',
+            'e-Class La voz que escuchamos'
+        ]
+    }
+    raw_recs_keys = form.recomendaciones.split(', ') if form.recomendaciones else []
+    texto_recs = ""
+    for curso_rec in raw_recs_keys:
+        texto_recs += f"{curso_rec}:\n"
+        for it in recomendaciones_mapping.get(curso_rec, []):
+            texto_recs += f"• {it}\n"
+        texto_recs += "\n"
+
     # Buffer en memoria
     buffer = io.BytesIO()
     width, height = letter
     p = canvas.Canvas(buffer, pagesize=letter)
 
-    # Fondo y logo (opcionales)
+    # Fondo y logo
     base_dir  = os.path.dirname(__file__)
     bg_path   = os.path.join(base_dir, 'background.png')
     logo_path = os.path.join(base_dir, 'logo.png')
@@ -304,14 +333,17 @@ def get_form_pdf(form_id):
     y = height - 120
     p.setFont("Helvetica", 12)
 
-    # Datos básicos
+    # Líneas principales extendidas
     for linea in [
         f"APIES: {form.apies}",
         f"Curso: {form.curso}",
         f"Fecha (usuario): {form.fecha_usuario.isoformat() if form.fecha_usuario else ''}",
         f"Gestor: {form.gestor}",
         f"Duración (horas): {form.duracion_horas}",
-        f"Ausentes: {form.ausentes}, Presentes: {form.presentes}"
+        f"Ausentes: {form.ausentes}, Presentes: {form.presentes}",
+        f"Jornada: {form.jornada}",
+        f"Dotación real estación: {form.dotacion_real_estacion}",
+        f"DNI faltantes: {form.dotacion_dni_faltantes}"
     ]:
         p.drawString(50, y, linea)
         y -= 20
@@ -341,24 +373,26 @@ def get_form_pdf(form_id):
                     y = height - 50
         y -= 20
 
-    # Secciones
-    wrap_section("Objetivo del Curso:", form.objetivo)
-    wrap_section("Contenido Desarrollado:", form.contenido_desarrollado)
-    wrap_section("Resultados y Logros:", form.resultados_logros)
+    # Secciones estándar
+    wrap_section("Objetivo del Curso:",         form.objetivo)
+    wrap_section("Contenido Desarrollado:",     form.contenido_desarrollado)
+    wrap_section("Resultados y Logros:",        form.resultados_logros)
 
     # Observaciones
     obs = {
-        "Compromiso": form.compromiso,
+        "Compromiso":    form.compromiso,
         "Participación": form.participacion_actividades,
         "Concentración": form.concentracion,
-        "Cansancio": form.cansancio,
-        "Interés": form.interes_temas
+        "Cansancio":     form.cansancio,
+        "Interés":       form.interes_temas
     }
-    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k,v in obs.items()))
+    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k, v in obs.items()))
 
-    # Recomendaciones (se asume que son un string "A, B, C")
-    
-    wrap_section("Recomendaciones:", form.recomendaciones)
+    # Otros aspectos a destacar
+    wrap_section("Otros aspectos a destacar:", form.otros_aspectos)
+
+    # Recomendaciones con contenidos
+    wrap_section("Recomendaciones:", texto_recs)
 
     # Firma (imagen o texto)
     y -= 20
