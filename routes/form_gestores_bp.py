@@ -42,41 +42,53 @@ def test():
 def form_gestores():
     data = request.get_json()
 
-    # ————— Guardar en la base —————
+    # ————— Procesar fecha —————
     try:
         fecha_usr = datetime.strptime(data.get('fecha',''), '%Y-%m-%d').date()
     except ValueError:
         fecha_usr = None
 
+    # ————— Recomendaciones —————
     raw_recs = data.get('recomendaciones', {}) or {}
+    texto_recs = ""
+    for curso_rec, items in raw_recs.items():
+        texto_recs += f"{curso_rec}:\n"
+        for it in items:
+            texto_recs += f"• {it}\n"
+        texto_recs += "\n"
     nombres_recs = ', '.join(raw_recs.keys())
 
+    # ————— Crear instancia con cols nuevas —————
     nuevo = FormularioGestor(
-        apies                  = data.get('apies'),
-        curso                  = data.get('curso'),
-        fecha_usuario          = fecha_usr,
-        gestor                 = data.get('gestor'),
-        duracion_horas         = int(data.get('duracionHoras') or 0),
-        objetivo               = data.get('objetivo'),
-        contenido_desarrollado = data.get('contenidoDesarrollado'),
-        ausentes               = int(data.get('ausentes') or 0),
-        presentes              = int(data.get('presentes') or 0),
-        resultados_logros      = data.get('resultadosLogros'),
-        compromiso             = data.get('compromiso'),
-        participacion_actividades = data.get('participacionActividades'),
-        concentracion          = data.get('concentracion'),
-        cansancio              = data.get('cansancio'),
-        interes_temas          = data.get('interesTemas'),
-        recomendaciones        = nombres_recs,
-        otros_aspectos         = data.get('otrosAspectos'),
-        firma_file             = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
-        nombre_firma           = data.get('nombreFirma'),
-        email_gestor           = data.get('emailGestor'),
-        creado_en              = datetime.utcnow()
+        apies                      = data.get('apies'),
+        curso                      = data.get('curso'),
+        fecha_usuario              = fecha_usr,
+        gestor                     = data.get('gestor'),
+        duracion_horas             = int(data.get('duracionHoras') or 0),
+        objetivo                   = data.get('objetivo'),
+        contenido_desarrollado     = data.get('contenidoDesarrollado'),
+        ausentes                   = int(data.get('ausentes') or 0),
+        presentes                  = int(data.get('presentes') or 0),
+        resultados_logros          = data.get('resultadosLogros'),
+        compromiso                 = data.get('compromiso'),
+        participacion_actividades  = data.get('participacionActividades'),
+        concentracion              = data.get('concentracion'),
+        cansancio                  = data.get('cansancio'),
+        interes_temas              = data.get('interesTemas'),
+        recomendaciones            = nombres_recs,
+        otros_aspectos             = data.get('otrosAspectos'),
+        # NUEVOS CAMPOS:
+        jornada                    = data.get('jornada'),
+        dotacion_real_estacion     = int(data.get('dotacion_real_estacion') or 0),
+        dotacion_dni_faltantes     = data.get('dotacion_dni_faltantes'),
+        firma_file                 = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
+        nombre_firma               = data.get('nombreFirma'),
+        email_gestor               = data.get('emailGestor'),
+        creado_en                  = datetime.utcnow()
     )
     db.session.add(nuevo)
     db.session.commit()
-    # ————————————————————————
+    # —————————————————————————————————
 
     # Paths de imágenes
     base_dir  = os.path.dirname(__file__)
@@ -88,11 +100,13 @@ def form_gestores():
     width, height = letter
     p = canvas.Canvas(buffer, pagesize=letter)
 
+    # Fondo y logo
     if os.path.exists(bg_path):
         p.drawImage(bg_path, 0, 0, width=width, height=height)
     if os.path.exists(logo_path):
         p.drawImage(logo_path, width-130, height-70, width=80, height=40, mask='auto')
 
+    # Título
     p.setFont("Helvetica-Bold", 18)
     p.drawCentredString(width/2, height-80, "Informe de Curso Realizado")
     y = height - 120
@@ -105,7 +119,10 @@ def form_gestores():
         f"Fecha (usuario): {nuevo.fecha_usuario or ''}",
         f"Gestor: {nuevo.gestor}",
         f"Duración (horas): {nuevo.duracion_horas}",
-        f"Ausentes: {nuevo.ausentes}, Presentes: {nuevo.presentes}"
+        f"Ausentes: {nuevo.ausentes}, Presentes: {nuevo.presentes}",
+        f"Jornada: {nuevo.jornada}",
+        f"Dotación real estación: {nuevo.dotacion_real_estacion}",
+        f"DNI faltantes: {nuevo.dotacion_dni_faltantes}"
     ]:
         p.drawString(50, y, linea)
         y -= 20
@@ -133,21 +150,21 @@ def form_gestores():
                     y = height - 50
         y -= 20
 
-    wrap_section("Objetivo del Curso:", nuevo.objetivo)
-    wrap_section("Contenido Desarrollado:", nuevo.contenido_desarrollado)
-    wrap_section("Resultados y Logros:", nuevo.resultados_logros)
+    wrap_section("Objetivo del Curso:",          nuevo.objetivo)
+    wrap_section("Contenido Desarrollado:",      nuevo.contenido_desarrollado)
+    wrap_section("Resultados y Logros:",         nuevo.resultados_logros)
 
     # Observaciones
     obs = {
-        'Compromiso': nuevo.compromiso,
+        'Compromiso':    nuevo.compromiso,
         'Participación': nuevo.participacion_actividades,
         'Concentración': nuevo.concentracion,
-        'Cansancio': nuevo.cansancio,
-        'Interés': nuevo.interes_temas
+        'Cansancio':     nuevo.cansancio,
+        'Interés':       nuevo.interes_temas
     }
-    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k,v in obs.items()))
-
-    wrap_section("Recomendaciones:", nuevo.recomendaciones)
+    wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k, v in obs.items()))
+    wrap_section("Otros aspectos a destacar:", nuevo.otros_aspectos)
+    wrap_section("Recomendaciones:", texto_recs)
 
     # Firma
     y -= 20
@@ -177,8 +194,8 @@ def form_gestores():
     # Adjuntos
     encoded_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
     attachments = [{
-        'ContentType': 'application/pdf',
-        'Filename': 'informe_curso.pdf',
+        'ContentType':   'application/pdf',
+        'Filename':      'informe_curso.pdf',
         'Base64Content': encoded_pdf
     }]
 
@@ -195,40 +212,35 @@ def form_gestores():
     )
 
     # Enviar email
-    mailjet = Client(auth=(os.getenv('MJ_APIKEY_PUBLIC'), os.getenv('MJ_APIKEY_PRIVATE')), version='v3.1')
+    mailjet = Client(auth=(os.getenv('MJ_APIKEY_PUBLIC'),
+                           os.getenv('MJ_APIKEY_PRIVATE')),
+                     version='v3.1')
     mail_data = {
         'Messages': [{
-            'From': {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
-            'To':   [{'Email': nuevo.email_gestor}],
+            'From':    {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
+            'To':      [{'Email': nuevo.email_gestor}],
             'Subject': subject,
             'TextPart': text,
             'Attachments': attachments
         }]
     }
     fixed_mail_data = {
-    'Messages': [{
-        'From': {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
-        'To':   [{'Email': 'nahuel.paz@ypf.com'}], 
-        'Subject': subject,
-        'TextPart': text,
-        'Attachments': attachments
-    }]
+       'Messages': [{
+            'From':    {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
+            'To':      [{'Email': 'regenerik.rio@gmail.com'}], # CAMBIAR A nahuel.paz@ypf.com despues de las pruebas
+            'Subject': subject,
+            'TextPart': text,
+            'Attachments': attachments
+       }]
     }
     try:
-        # 1er envío: al gestor
         res1 = mailjet.send.create(data=mail_data)
-        logger.info('Mailjet al gestor %s → %s %s',
-                    nuevo.email_gestor, res1.status_code, res1.json())
-
-        # 2do envío: fixed
+        logger.info('Mailjet al gestor %s → %s', nuevo.email_gestor, res1.status_code)
         res2 = mailjet.send.create(data=fixed_mail_data)
-        logger.info('Mailjet fixed → %s %s',
-                    res2.status_code, res2.json())
-
-        return jsonify({'success': res1.status_code in (200,201)}), res1.status_code
-    
+        logger.info('Mailjet fixed → %s', res2.status_code)
+        return jsonify({'success': True}), 200
     except Exception as e:
-        print('Error enviando email vía Mailjet:', e)
+        logger.error('Error enviando Mailjet: %s', e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @form_gestores_bp.route('/form_gestores/download_excel', methods=['GET'])
@@ -345,6 +357,7 @@ def get_form_pdf(form_id):
     wrap_section("Observaciones:", "\n".join(f"{k}: {v}" for k,v in obs.items()))
 
     # Recomendaciones (se asume que son un string "A, B, C")
+    
     wrap_section("Recomendaciones:", form.recomendaciones)
 
     # Firma (imagen o texto)

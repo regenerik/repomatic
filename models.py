@@ -82,6 +82,9 @@ class FormularioGestor(db.Model):
     interes_temas = db.Column(db.String(20), nullable=True)
     recomendaciones = db.Column(db.Text, nullable=True)
     otros_aspectos = db.Column(db.Text, nullable=True)
+    jornada = db.Column(db.String(20), nullable=False)
+    dotacion_real_estacion = db.Column(db.Integer, nullable=True)
+    dotacion_dni_faltantes = db.Column(db.Text, nullable=True)
     firma_file = db.Column(db.LargeBinary, nullable=True)
     nombre_firma = db.Column(db.String(100), nullable=True)
     email_gestor = db.Column(db.String(120), nullable=False)
@@ -107,6 +110,9 @@ class FormularioGestor(db.Model):
             "interes_temas": self.interes_temas,
             "recomendaciones": self.recomendaciones,
             "otros_aspectos": self.otros_aspectos,
+            "jornada": self.jornada,
+            "dotacion_real_estacion": self.dotacion_real_estacion,
+            "dotacion_dni_faltantes": self.dotacion_dni_faltantes,
             "nombre_firma": self.nombre_firma,
             "email_gestor": self.email_gestor,
             "creado_en": self.creado_en.isoformat()
