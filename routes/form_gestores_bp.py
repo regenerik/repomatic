@@ -80,7 +80,7 @@ def form_gestores():
         # NUEVOS CAMPOS:
         jornada                    = data.get('jornada'),
         dotacion_real_estacion     = int(data.get('dotacion_real_estacion') or 0),
-        dotacion_dni_faltantes     = data.get('dotacion_dni_faltantes'),
+        dotacion_en_campus         = int(data.get('dotacion_en_campus') or 0),
         firma_file                 = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
         nombre_firma               = data.get('nombreFirma'),
         email_gestor               = data.get('emailGestor'),
@@ -122,7 +122,7 @@ def form_gestores():
         f"Ausentes: {nuevo.ausentes}, Presentes: {nuevo.presentes}",
         f"Jornada: {nuevo.jornada}",
         f"Dotación real estación: {nuevo.dotacion_real_estacion}",
-        f"DNI faltantes: {nuevo.dotacion_dni_faltantes}"
+        f"Dotación de Campus: {nuevo.dotacion_en_campus}",
     ]:
         p.drawString(50, y, linea)
         y -= 20
@@ -227,7 +227,7 @@ def form_gestores():
     fixed_mail_data = {
        'Messages': [{
             'From':    {'Email': os.getenv('MJ_SENDER_EMAIL'), 'Name': 'YPF Form Gestores'},
-            'To':      [{'Email': 'nahuel.paz@ypf.com'}], # CAMBIAR A nahuel.paz@ypf.com despues de las pruebas
+            'To':      [{'Email': 'regenerik.rio@gmail.com'}], # CAMBIAR A nahuel.paz@ypf.com despues de las pruebas
             'Subject': subject,
             'TextPart': text,
             'Attachments': attachments
@@ -343,7 +343,7 @@ def get_form_pdf(form_id):
         f"Ausentes: {form.ausentes}, Presentes: {form.presentes}",
         f"Jornada: {form.jornada}",
         f"Dotación real estación: {form.dotacion_real_estacion}",
-        f"DNI faltantes: {form.dotacion_dni_faltantes}"
+        f"Dotación en Campus: {form.dotacion_en_campus}"
     ]:
         p.drawString(50, y, linea)
         y -= 20

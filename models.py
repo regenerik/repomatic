@@ -84,6 +84,7 @@ class FormularioGestor(db.Model):
     otros_aspectos = db.Column(db.Text, nullable=True)
     jornada = db.Column(db.String(20), nullable=False)
     dotacion_real_estacion = db.Column(db.Integer, nullable=True)
+    dotacion_en_campus = db.Column(db.Integer, nullable=True)
     dotacion_dni_faltantes = db.Column(db.Text, nullable=True)
     firma_file = db.Column(db.LargeBinary, nullable=True)
     nombre_firma = db.Column(db.String(100), nullable=True)
