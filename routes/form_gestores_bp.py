@@ -12,7 +12,6 @@ from datetime import datetime
 from database import db
 import pandas as pd
 from io import BytesIO
-from dateutil.parser import parse as parse_date
 
 
 load_dotenv()
@@ -61,8 +60,9 @@ def form_gestores():
 
     # Intentamos parsear la fecha del JSON
     try:
-        creado_en = parse_date(data.get("creado_en"))
-    except:
+        creado_en_str = data.get("creado_en")
+        creado_en = datetime.fromisoformat(creado_en_str) if creado_en_str else datetime.utcnow()
+    except Exception:
         creado_en = datetime.utcnow()
 
     # ————— Crear instancia con cols nuevas —————
