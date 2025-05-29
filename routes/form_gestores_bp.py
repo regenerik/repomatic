@@ -12,6 +12,7 @@ from datetime import datetime
 from database import db
 import pandas as pd
 from io import BytesIO
+from dateutil.parser import parse as parse_date
 
 
 load_dotenv()
@@ -58,6 +59,12 @@ def form_gestores():
         texto_recs += "\n"
     nombres_recs = ', '.join(raw_recs.keys())
 
+    # Intentamos parsear la fecha del JSON
+    try:
+        creado_en = parse_date(data.get("creado_en"))
+    except:
+        creado_en = datetime.utcnow()
+
     # ————— Crear instancia con cols nuevas —————
     nuevo = FormularioGestor(
         apies                      = data.get('apies'),
@@ -84,7 +91,7 @@ def form_gestores():
         firma_file                 = base64.b64decode(data.get('firmaFile')) if data.get('firmaFile') else None,
         nombre_firma               = data.get('nombreFirma'),
         email_gestor               = data.get('emailGestor'),
-        creado_en                  = datetime.utcnow()
+        creado_en                  = creado_en
     )
     db.session.add(nuevo)
     db.session.commit()
