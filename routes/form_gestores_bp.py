@@ -482,6 +482,14 @@ def form_gestores_batch():
                 texto_recs += "\n"
             nombres_recs = ', '.join(raw_recs.keys()) if isinstance(raw_recs, dict) else ""
 
+            # Intentamos parsear la fecha del JSON
+            try:
+                creado_en_str = data.get("creado_en")
+                creado_en = datetime.fromisoformat(creado_en_str) if creado_en_str else datetime.utcnow()
+            except Exception:
+                creado_en = datetime.utcnow()
+
+
             nuevo = FormularioGestor(
                 apies                     = data.get('apies'),
                 curso                     = data.get('curso'),
@@ -506,7 +514,7 @@ def form_gestores_batch():
                 firma_file                = base64.b64decode(data.get('firma_file')) if data.get('firma_file') else None,
                 nombre_firma              = data.get('nombre_firma'),
                 email_gestor              = data.get('email_gestor'),
-                creado_en                 = datetime.utcnow()
+                creado_en                 = creado_en
             )
 
             db.session.add(nuevo)
