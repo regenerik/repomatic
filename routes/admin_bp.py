@@ -31,7 +31,7 @@ def check_api_key(api_key):
 def authorize():
     if request.method == 'OPTIONS':
         return
-    if request.path in ['/procesar_encuesta','/test_admin_bp','/','/correccion_campos_vacios','/descargar_positividad_corregida','/download_comments_evaluation','/all_comments_evaluation','/download_resume_csv','/create_resumes_of_all','/descargar_excel','/create_resumes', '/reportes_disponibles', '/create_user', '/login', '/users','/update_profile','/update_profile_image','/update_admin']:
+    if request.path in ['/check-token','/procesar_encuesta','/test_admin_bp','/','/correccion_campos_vacios','/descargar_positividad_corregida','/download_comments_evaluation','/all_comments_evaluation','/download_resume_csv','/create_resumes_of_all','/descargar_excel','/create_resumes', '/reportes_disponibles', '/create_user', '/login', '/users','/update_profile','/update_profile_image','/update_admin']:
         return
     api_key = request.headers.get('Authorization')
     if not api_key or not check_api_key(api_key):
@@ -343,57 +343,8 @@ def existencia_excel():
         return jsonify({"message": f"Error al confirmar la existencia del archivo: {str(e)}", "ok": False}), 500
 
 
-# RUTA PRUEBA PARA INPUT DE MENTIMETER>>>>>>>>>>>>>>>>>>>>
-
-
-# @admin_bp.route('/procesar_encuesta', methods=['POST'])
-# def procesar_encuesta():
-#     try:
-#         # Verificar si el archivo está presente en la request
-#         if 'file' not in request.files:
-#             return jsonify({"error": "No se envió ningún archivo"}), 400
-
-#         file = request.files['file']
-        
-#         # Leer el archivo Excel
-#         df = pd.read_excel(file)
-        
-#         # Verificar si tiene suficientes columnas
-#         if len(df.columns) < 5:
-#             return jsonify({"error": "El archivo no tiene suficientes columnas"}), 400
-        
-#         # Capturar los datos de la quinta columna
-#         comentarios = df.iloc[:, 4].dropna().tolist()  # El índice 4 es la quinta columna
-        
-#         # Crear el prompt para OpenAI
-#         prompt = (
-#             "Basándote en los siguientes comentarios de una encuesta, "
-#             "genera una interpretación o deducción general. La misma tiene que ser un resumen de no más de un párrafo y texto plano sin caracteres de saltos de linea ni códigos extraños. La respuesta por entero tiene que leerse como si fuera una persona sacando su conclución:\n\n" +
-#             "\n".join(comentarios)
-#         )
-
-#         # Hacer el pedido a OpenAI
-#         try:
-#             logger.info("Enviando solicitud a OpenAI...")
-#             completion = client.chat.completions.create(
-#                 model="gpt-4o-mini",
-#                 messages=[
-#                     {"role": "system", "content": "Eres un analista que clasifica comentarios y genera deducciones."},
-#                     {"role": "user", "content": prompt}
-#                 ]
-#             )
-
-#             # Obtener la respuesta
-#             respuesta = completion.choices[0].message.content
-#             logger.info("Respuesta obtenida exitosamente de OpenAI")
-        
-#         except Exception as openai_error:
-#             logger.error(f"Error al comunicarse con OpenAI: {openai_error}")
-#             return jsonify({"error": "Fallo en la comunicación con OpenAI"}), 500
-
-#         # Retornar el texto generado
-#         return jsonify({"resultado": respuesta}), 200
-
-#     except Exception as e:
-#         logger.error(f"Error en la ruta: {e}")
-#         return jsonify({"error": str(e)}), 500
+@admin_bp.route('/check-token', methods=['GET'])
+@jwt_required()
+def check_token():
+    # Si el JWT es válido, responde 200 OK
+    return jsonify({"valid": True}), 200
