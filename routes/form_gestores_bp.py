@@ -424,3 +424,89 @@ def get_form_pdf(form_id):
         download_name=f"informe_{form_id}.pdf",
         mimetype='application/pdf'
     )
+
+
+@form_gestores_bp.route('/delete_especific_form', methods=['POST'])
+def delete_especific_form():
+    try:
+        data = request.get_json()
+        form_id = data.get("id")
+
+        if not form_id:
+            return jsonify({"error": "Falta el ID del formulario"}), 400
+
+        formulario = FormularioGestor.query.get(form_id)
+
+        if not formulario:
+            return jsonify({"error": "Formulario no encontrado"}), 404
+
+        db.session.delete(formulario)
+        db.session.commit()
+
+        return jsonify({"message": f"Formulario {form_id} eliminado correctamente"}), 200
+
+    except Exception as e:
+        print(f"Error eliminando formulario: {str(e)}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+    
+
+@form_gestores_bp.route('/form_gestores_batch', methods=['POST'])
+def form_gestores_batch():
+    try:
+        data_array = request.get_json()
+
+        if not isinstance(data_array, list):
+            return jsonify({"error": "Se esperaba un array de objetos"}), 400
+
+        for data in data_array:
+            # Procesar fecha
+            try:
+                fecha_usr = datetime.strptime(data.get('fecha_usuario', ''), '%Y-%m-%d').date()
+            except ValueError:
+                fecha_usr = None
+
+            # Recomendaciones (formato nuevo o vacío)
+            raw_recs = data.get('recomendaciones', {}) or {}
+            texto_recs = ""
+            for curso_rec, items in raw_recs.items() if isinstance(raw_recs, dict) else []:
+                texto_recs += f"{curso_rec}:\n"
+                for it in items:
+                    texto_recs += f"• {it}\n"
+                texto_recs += "\n"
+            nombres_recs = ', '.join(raw_recs.keys()) if isinstance(raw_recs, dict) else ""
+
+            nuevo = FormularioGestor(
+                apies                     = data.get('apies'),
+                curso                     = data.get('curso'),
+                fecha_usuario             = fecha_usr,
+                gestor                    = data.get('gestor'),
+                duracion_horas            = int(data.get('duracion_horas') or 0),
+                objetivo                  = data.get('objetivo'),
+                contenido_desarrollado    = data.get('contenido_desarrollado'),
+                ausentes                  = int(data.get('ausentes') or 0),
+                presentes                 = int(data.get('presentes') or 0),
+                resultados_logros         = data.get('resultados_logros'),
+                compromiso                = data.get('compromiso'),
+                participacion_actividades = data.get('participacion_actividades'),
+                concentracion             = data.get('concentracion'),
+                cansancio                 = data.get('cansancio'),
+                interes_temas             = data.get('interes_temas'),
+                recomendaciones           = nombres_recs,
+                otros_aspectos            = data.get('otros_aspectos'),
+                jornada                   = data.get('jornada'),
+                dotacion_real_estacion    = int(data.get('dotacion_real_estacion') or 0),
+                dotacion_en_campus        = int(data.get('dotacion_en_campus') or 0),
+                firma_file                = base64.b64decode(data.get('firma_file')) if data.get('firma_file') else None,
+                nombre_firma              = data.get('nombre_firma'),
+                email_gestor              = data.get('email_gestor'),
+                creado_en                 = datetime.utcnow()
+            )
+
+            db.session.add(nuevo)
+
+        db.session.commit()
+        return jsonify({"message": f"{len(data_array)} formularios guardados correctamente"}), 201
+
+    except Exception as e:
+        print(f"Error al guardar formularios: {str(e)}")
+        return jsonify({"error": "Error interno del servidor"}), 500
