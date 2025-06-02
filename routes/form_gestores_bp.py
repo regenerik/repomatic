@@ -249,34 +249,90 @@ def form_gestores():
     except Exception as e:
         logger.error('Error enviando Mailjet: %s', e)
         return jsonify({'success': False, 'error': str(e)}), 500
-
+    
 @form_gestores_bp.route('/form_gestores/download_excel', methods=['GET'])
 def download_formularios_excel():
     # 1) Traer todos los registros
     registros = FormularioGestor.query.all()
+
     # 2) Serializar
     data = [r.serialize() for r in registros]
+
     # 3) Meter en DataFrame
     df = pd.DataFrame(data)
 
-    # 4) Volcar a un buffer Excel
+    # 4) Mapeos
+    mapeo_nombres = {
+        'Jose L. Gallucci': 'LUCIANO GALLUCCI',
+        'Mauricio Cuevas': 'MAURICIO CUEVAS',
+        'John Martinez': 'MARTINEZ, JOHN HENRY',
+        'Georgina M. Cutili': 'MARICEL CUTILI',
+        'Octavio Torres': 'OCTAVIO TORRES',
+        'Fernanda M. Rodriguez': 'FERNANDA RODRIGUEZ',
+        'Pablo J. Raggio': 'PABLO RAGGIO',
+        'Noelia Otarula': 'NOELIA OTARULA',
+        'Dante Merluccio': 'MERLUCCIO DANTE'
+    }
+
+    mapeo_cursos = {
+        'PEC 1.0': 'TEC_DW_COM_25_RETAIL_1PDEEX_PL',
+        'WOW Playa': 'TEC_DW_COM_25_RETAIL_EXDEC2_PL',
+        'WOW Tienda': 'TEC_DW_COM_25_RETAIL_EXDECO_PL',
+        'PEC 2.0': 'TEC_DW_COM_25_RETAIL_2PDEEX_PL',
+        'PEM FULL': 'TEC_DW_COM_LC_TIENDA_PEMTFF_EC',
+        'APERTURA RETAIL': 'TEC_DW_COM_24_RETAIL_APREER_PL'
+    }
+
+    # 5) Agregar columnas nuevas
+    df['Nombre Gestor'] = df['gestor'].map(mapeo_nombres).fillna('')
+    df['ID curso'] = df['curso'].map(mapeo_cursos).fillna('')
+
+    # 6) Volcar a un buffer Excel
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Formularios')
 
     output.seek(0)
 
-    # 5) Nombre dinámico con fecha actual
+    # 7) Nombre dinámico con fecha actual
     hoy = datetime.now()
     nombre = f"Formularios_Gestores_hasta_{hoy.day:02d}_{hoy.month:02d}_{hoy.year}.xlsx"
 
-    # 6) Devolver como attachment
+    # 8) Devolver como attachment
     return send_file(
         output,
         as_attachment=True,
         download_name=nombre,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
+# @form_gestores_bp.route('/form_gestores/download_excel', methods=['GET'])
+# def download_formularios_excel():
+#     # 1) Traer todos los registros
+#     registros = FormularioGestor.query.all()
+#     # 2) Serializar
+#     data = [r.serialize() for r in registros]
+#     # 3) Meter en DataFrame
+#     df = pd.DataFrame(data)
+
+#     # 4) Volcar a un buffer Excel
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine='openpyxl') as writer:
+#         df.to_excel(writer, index=False, sheet_name='Formularios')
+
+#     output.seek(0)
+
+#     # 5) Nombre dinámico con fecha actual
+#     hoy = datetime.now()
+#     nombre = f"Formularios_Gestores_hasta_{hoy.day:02d}_{hoy.month:02d}_{hoy.year}.xlsx"
+
+#     # 6) Devolver como attachment
+#     return send_file(
+#         output,
+#         as_attachment=True,
+#         download_name=nombre,
+#         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+#     )
 
 @form_gestores_bp.route('/get_forms', methods=['GET'])
 def get_forms():
