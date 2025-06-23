@@ -271,7 +271,8 @@ def download_formularios_excel():
         'Fernanda M. Rodriguez': 'FERNANDA RODRIGUEZ',
         'Pablo J. Raggio': 'PABLO RAGGIO',
         'Noelia Otarula': 'NOELIA OTARULA',
-        'Dante Merluccio': 'MERLUCCIO DANTE'
+        'Dante Merluccio': 'MERLUCCIO DANTE',
+        'Flavia Camuzzi': 'FLAVIA CAMUZZI'
     }
 
     mapeo_cursos = {
